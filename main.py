@@ -7,6 +7,10 @@ import sqlite3
 import datetime
 import requests
 
+from plyer import gps
+from math import radians, cos, sin, asin, sqrt
+
+
 # Simulated GPS coordinates for Windows (replace with plyer for Android)
 def get_current_gps():
     return 28.6139, 77.2090  # Delhi coordinates
@@ -114,6 +118,103 @@ class LoginScreen(Screen):
             self.error_message = "User already exists."
         finally:
             con.close()
+# Haversine formula to calculate distance between two GPS points (in km)
+def haversine(lon1, lat1, lon2, lat2):
+    # convert decimal degrees to radians
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+    # haversine formula
+    dlon = lon2 - lon1 
+    dlat = lat2 - lat1 
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a)) 
+    km = 6371 * c
+    return km
+
+class CarbonScreen(Screen):
+    electricity_bill = StringProperty("")
+    transport_mode = StringProperty("walking")
+    distance_travelled = 0.0
+    carbon_footprint = StringProperty("")
+    carbon_credits = StringProperty("")
+    prev_lat = None
+    prev_lon = None
+
+    def on_enter(self):
+        self.distance_travelled = 0.0
+        self.prev_lat = None
+        self.prev_lon = None
+        self.transport_mode = "walking"
+        self.ids.carbon_footprint_label.text = ""
+        self.ids.carbon_credits_label.text = ""
+        try:
+            gps.configure(on_location=self.on_gps_location, on_status=self.on_gps_status)
+            gps.start(minTime=1000, minDistance=1)  # Update every 1s or 1m movement
+        except:
+            self.ids.carbon_footprint_label.text = "GPS not available or permission denied."
+
+    def on_leave(self):
+        try:
+            gps.stop()
+        except:
+            pass
+
+    def on_gps_location(self, **kwargs):
+        lat = kwargs.get('lat')
+        lon = kwargs.get('lon')
+        speed = kwargs.get('speed', 0) or 0  # m/s
+
+        # Update transport mode based on speed thresholds
+        if speed < 2:
+            mode = "walking"
+        elif speed < 15:
+            mode = "two-wheeler"
+        else:
+            mode = "four-wheeler"
+        self.transport_mode = mode
+        self.ids.transport_spinner.text = mode
+
+        # Calculate distance from previous point
+        if self.prev_lat is not None and self.prev_lon is not None:
+            dist = haversine(self.prev_lon, self.prev_lat, lon, lat)
+            self.distance_travelled += dist
+        self.prev_lat = lat
+        self.prev_lon = lon
+
+    def on_gps_status(self, stype, status):
+        pass  # Can show GPS status messages if needed
+
+    def calculate_credits(self):
+        try:
+            bill = float(self.ids.electricity_bill.text)
+        except:
+            self.ids.carbon_footprint_label.text = "Invalid electricity bill amount."
+            self.ids.carbon_credits_label.text = ""
+            return
+
+        transport = self.transport_mode
+        
+        # Electricity CO2 estimation
+        electricity_co2 = bill * 0.82  # kg CO2 approx
+
+        # Petrol consumption estimation based on distance and mode
+        mileage_map = {"walking": 0, "two-wheeler": 40, "four-wheeler": 15}  # km/l
+        co2_per_liter_petrol = 2.3  # kg CO2 per liter petrol approx
+
+        mileage = mileage_map.get(transport, 0)
+        petrol_used = self.distance_travelled / mileage if mileage else 0
+        transport_co2 = petrol_used * co2_per_liter_petrol
+
+        total_co2 = electricity_co2 + transport_co2
+
+        credits = total_co2 / 1000  # 1 credit per 1000 kg
+
+        self.ids.carbon_footprint_label.text = (
+            f"Electricity CO₂: {electricity_co2:.2f} kg\n"
+            f"Transport CO₂: {transport_co2:.2f} kg (Distance: {self.distance_travelled:.2f} km)\n"
+            f"Total CO₂ emissions: {total_co2:.2f} kg"
+        )
+        self.ids.carbon_credits_label.text = f"Estimated carbon credits: {credits:.3f}"
+
 
 class MainScreen(Screen):
     username = StringProperty("")
