@@ -1,141 +1,257 @@
+#:import get_color_from_hex kivy.utils.get_color_from_hex
+
 WindowManager:
     LoginScreen:
-        name: "login"
     MainScreen:
-        name: "main"
     HealthScreen:
-        name: "health"
     CarbonScreen:
-        name: "carbon"
     JunkFoodScreen:
-        name: "junk"
+
+<NavButton@Button>:
+    # Set the default background to be fully transparent.
+    # The actual color is drawn in the canvas instructions below.
+    background_color: 0, 0, 0, 0
+    background_normal: ''
+    font_size: '15sp'
+    color: 1, 1, 1, 1
+    # Add a custom property for the background color to be used in the canvas
+    bg_color: 0.5, 0.5, 0.5, 1
+    canvas.before:
+        Color:
+            # Use the custom bg_color property. Darken it when pressed.
+            rgba: self.bg_color if self.state == 'normal' else [c*0.8 for c in self.bg_color]
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [12,]
+
+<TitleLabel@Label>:
+    font_size: '28sp'
+    size_hint_y: None
+    height: self.texture_size[1] + 15
+    color: get_color_from_hex('#130f40')
+    bold: True
+
+<InfoLabel@Label>:
+    color: get_color_from_hex('#2f3542')
+    text_size: self.width, None
+    size_hint_y: None
+    height: self.texture_size[1]
+    markup: True
+
+<Screen>:
+    canvas.before:
+        Color:
+            rgba: get_color_from_hex('#F8F9F9')
+        Rectangle:
+            pos: self.pos
+            size: self.size
 
 <LoginScreen>:
+    name: 'login'
     BoxLayout:
         orientation: 'vertical'
-        padding: 20
-        spacing: 10
-        Label:
-            text: "Login"
-            font_size: 32
+        padding: "30dp"
+        spacing: "20dp"
+        canvas.before:
+            Color:
+                rgba: get_color_from_hex('#E8F0FE')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        TitleLabel:
+            text: "Health & AQI Tracker"
+            halign: 'center'
         TextInput:
             id: username
             hint_text: "Username"
+            size_hint_y: None
+            height: "48dp"
             multiline: False
         TextInput:
             id: password
             hint_text: "Password"
-            multiline: False
             password: True
+            size_hint_y: None
+            height: "48dp"
+            multiline: False
         Label:
             text: root.error_message
-            color: 1,0,0,1
-            font_size: 14
-        BoxLayout:
+            color: 1, 0, 0, 1
             size_hint_y: None
-            height: '48dp'
-            spacing: 10
-            Button:
+            height: self.texture_size[1]
+        BoxLayout:
+            spacing: "20dp"
+            size_hint_y: None
+            height: "48dp"
+            NavButton:
                 text: "Login"
-                on_release: root.do_login()
-            Button:
+                bg_color: get_color_from_hex('#3B3B98')
+                on_release: root.do_login(username.text, password.text)
+            NavButton:
                 text: "Register"
-                on_release: root.register()
+                bg_color: get_color_from_hex('#1DD1A1')
+                on_release: root.register_user(username.text, password.text)
+        Label: # Spacer
+            size_hint_y: 0.5
 
 <MainScreen>:
-    username: ""
+    name: 'main'
     BoxLayout:
         orientation: 'vertical'
-        padding: 20
-        spacing: 15
-        Label:
-            text: "AQI Dashboard"
-            font_size: 26
-        Label:
-            id: aqi_label
-            text: root.aqi_info
-            font_size: 18
-        Button:
-            text: "Refresh AQI"
+        padding: "15dp"
+        spacing: "10dp"
+        TitleLabel:
+            text: "Live AQI Dashboard"
+        NavButton:
+            text: "Refresh AQI Data"
+            bg_color: get_color_from_hex('#00a8ff')
+            size_hint_y: None
+            height: "48dp"
             on_release: root.get_aqi()
+        ScrollView:
+            bar_width: 8
+            Label:
+                id: aqi_info
+                text: root.aqi_info
+                size_hint_y: None
+                height: self.texture_size[1] + 40
+                text_size: self.width * 0.9, None
+                padding: (15, 15)
+                color: get_color_from_hex('#130f40')
+                font_size: '16sp'
+                markup: True
         BoxLayout:
             size_hint_y: None
-            height: '48dp'
-            spacing: 10
-            Button:
-                text: "Health Info"
-                on_release: app.root.current = 'health'; app.root.get_screen('health').username=root.username
-            Button:
-                text: "Carbon Credits"
+            height: "50dp"
+            spacing: "10dp"
+            NavButton:
+                text: "Health"
+                bg_color: get_color_from_hex('#ff6b6b')
+                on_release: app.root.current = 'health'
+            NavButton:
+                text: "Carbon"
+                bg_color: get_color_from_hex('#54a0ff')
                 on_release: app.root.current = 'carbon'
-            Button:
-                text: "Junk Food Calculator"
-                on_release: app.root.current = 'junk'; app.root.get_screen('junk').username=root.username
-            Button:
-                text: "Logout"
-                on_release: app.root.current = 'login'
+            NavButton:
+                text: "Junk Food"
+                bg_color: get_color_from_hex('#f368e0')
+                on_release: app.root.current = 'junk_food'
+        NavButton:
+            text: "Logout"
+            bg_color: get_color_from_hex('#576574')
+            size_hint_y: None
+            height: "48dp"
+            on_release: app.root.current = 'login'
 
 <HealthScreen>:
-    username: ""
+    name: 'health'
     BoxLayout:
         orientation: 'vertical'
-        padding: 20
-        Label:
-            text: "Health Effects (AQI History)"
-            font_size: 24
-        Label:
+        padding: "15dp"
+        spacing: "10dp"
+        TitleLabel:
+            text: "Health Summary"
+        InfoLabel:
+            id: history_info
             text: root.history_info
-            font_size: 15
-            halign: "left"
-            valign: "top"
-        Button:
-            text: "Back"
+        Label: # Spacer
+        NavButton:
+            text: "Back to Dashboard"
+            bg_color: get_color_from_hex('#576574')
+            size_hint_y: None
+            height: "48dp"
             on_release: app.root.current = 'main'
 
 <CarbonScreen>:
+    name: 'carbon'
     BoxLayout:
         orientation: 'vertical'
-        padding: 20
-        Label:
-            text: "Carbon Credits Info"
-            font_size: 24
+        padding: "15dp"
+        spacing: "10dp"
+        TitleLabel:
+            text: "Carbon Footprint"
+        TextInput:
+            id: electricity_bill
+            hint_text: "Enter monthly electricity bill (in kWh)"
+            size_hint_y: None
+            height: "48dp"
+            input_filter: 'float'
+        Spinner:
+            id: transport_spinner
+            text: 'Walking'
+            values: ['Walking', 'Two-Wheeler', 'Four-Wheeler']
+            size_hint_y: None
+            height: "48dp"
+        NavButton:
+            text: "Calculate"
+            bg_color: get_color_from_hex('#54a0ff')
+            size_hint_y: None
+            height: "48dp"
+            on_release: root.calculate_credits(electricity_bill.text, transport_spinner.text)
         ScrollView:
-            do_scroll_x: False
+            bar_width: 8
             Label:
-                id: carbon_info
-                text: ""
-                text_size: self.width, None
+                id: carbon_footprint_label
+                text: root.carbon_footprint
+                font_size: '16sp'
+                color: get_color_from_hex('#130f40')
                 size_hint_y: None
-                height: self.texture_size[1]
-                halign: "left"
-                valign: "top"
-        Button:
-            text: "Back"
+                height: self.texture_size[1] + 20
+                text_size: self.width * 0.9, None
+                markup: True
+        NavButton:
+            text: "Back to Dashboard"
+            bg_color: get_color_from_hex('#576574')
+            size_hint_y: None
+            height: "48dp"
             on_release: app.root.current = 'main'
 
 <JunkFoodScreen>:
-    username: ""
+    name: 'junk_food'
     BoxLayout:
         orientation: 'vertical'
-        padding: 20
-        Label:
-            text: "Junk Food Calculator"
-            font_size: 24
+        padding: "15dp"
+        spacing: "10dp"
+        TitleLabel:
+            text: "Junk Food Log"
         TextInput:
             id: food_item
-            hint_text: "Food name"
+            hint_text: "e.g., Pizza Slice"
+            size_hint_y: None
+            height: "48dp"
         TextInput:
             id: calories
-            hint_text: "Calories"
-            input_filter: "int"
-        Button:
-            text: "Add"
-            on_release: root.calc_junkfood()
+            hint_text: "e.g., 285"
+            size_hint_y: None
+            height: "48dp"
+            input_filter: 'int'
         Label:
+            id: result_label
             text: root.result
-            font_size: 15
-            halign: "left"
-            valign: "top"
-        Button:
-            text: "Back"
+            color: get_color_from_hex('#009432')
+            size_hint_y: None
+            height: self.texture_size[1]
+        NavButton:
+            text: "Log Food"
+            bg_color: get_color_from_hex('#f368e0')
+            size_hint_y: None
+            height: "48dp"
+            on_release: root.log_food(food_item.text, calories.text)
+        ScrollView:
+            bar_width: 8
+            Label:
+                id: junk_food_log
+                font_size: '16sp'
+                color: get_color_from_hex('#130f40')
+                size_hint_y: None
+                height: self.texture_size[1] + 20
+                text_size: self.width * 0.9, None
+                markup: True
+        NavButton:
+            text: "Back to Dashboard"
+            bg_color: get_color_from_hex('#576574')
+            size_hint_y: None
+            height: "48dp"
             on_release: app.root.current = 'main'
+
