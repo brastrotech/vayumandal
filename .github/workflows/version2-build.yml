@@ -1,0 +1,24 @@
+name: Build Android APK (Version 2)
+
+on:
+  push:
+    branches: [ "version2" ] # This now triggers ONLY for the version2 branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4 # Updated to the latest major version for best practice
+
+    - name: Build with Buildozer
+      uses: ArtemSBulgakov/buildozer-action@v1
+      with:
+        command: buildozer android debug
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: AirQualityApp-v2.apk # Renamed artifact to avoid confusion with main branch builds
+        path: bin/*.apk
