@@ -1,0 +1,141 @@
+WindowManager:
+    LoginScreen:
+        name: "login"
+    MainScreen:
+        name: "main"
+    HealthScreen:
+        name: "health"
+    CarbonScreen:
+        name: "carbon"
+    JunkFoodScreen:
+        name: "junk"
+
+<LoginScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 10
+        Label:
+            text: "Login"
+            font_size: 32
+        TextInput:
+            id: username
+            hint_text: "Username"
+            multiline: False
+        TextInput:
+            id: password
+            hint_text: "Password"
+            multiline: False
+            password: True
+        Label:
+            text: root.error_message
+            color: 1,0,0,1
+            font_size: 14
+        BoxLayout:
+            size_hint_y: None
+            height: '48dp'
+            spacing: 10
+            Button:
+                text: "Login"
+                on_release: root.do_login()
+            Button:
+                text: "Register"
+                on_release: root.register()
+
+<MainScreen>:
+    username: ""
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 15
+        Label:
+            text: "AQI Dashboard"
+            font_size: 26
+        Label:
+            id: aqi_label
+            text: root.aqi_info
+            font_size: 18
+        Button:
+            text: "Refresh AQI"
+            on_release: root.get_aqi()
+        BoxLayout:
+            size_hint_y: None
+            height: '48dp'
+            spacing: 10
+            Button:
+                text: "Health Info"
+                on_release: app.root.current = 'health'; app.root.get_screen('health').username=root.username
+            Button:
+                text: "Carbon Credits"
+                on_release: app.root.current = 'carbon'
+            Button:
+                text: "Junk Food Calculator"
+                on_release: app.root.current = 'junk'; app.root.get_screen('junk').username=root.username
+            Button:
+                text: "Logout"
+                on_release: app.root.current = 'login'
+
+<HealthScreen>:
+    username: ""
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        Label:
+            text: "Health Effects (AQI History)"
+            font_size: 24
+        Label:
+            text: root.history_info
+            font_size: 15
+            halign: "left"
+            valign: "top"
+        Button:
+            text: "Back"
+            on_release: app.root.current = 'main'
+
+<CarbonScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        Label:
+            text: "Carbon Credits Info"
+            font_size: 24
+        ScrollView:
+            do_scroll_x: False
+            Label:
+                id: carbon_info
+                text: ""
+                text_size: self.width, None
+                size_hint_y: None
+                height: self.texture_size[1]
+                halign: "left"
+                valign: "top"
+        Button:
+            text: "Back"
+            on_release: app.root.current = 'main'
+
+<JunkFoodScreen>:
+    username: ""
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        Label:
+            text: "Junk Food Calculator"
+            font_size: 24
+        TextInput:
+            id: food_item
+            hint_text: "Food name"
+        TextInput:
+            id: calories
+            hint_text: "Calories"
+            input_filter: "int"
+        Button:
+            text: "Add"
+            on_release: root.calc_junkfood()
+        Label:
+            text: root.result
+            font_size: 15
+            halign: "left"
+            valign: "top"
+        Button:
+            text: "Back"
+            on_release: app.root.current = 'main'
