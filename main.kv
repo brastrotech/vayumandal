@@ -112,6 +112,87 @@ WindowManager:
         Button:
             text: "Back"
             on_release: app.root.current = 'main'
+<CarbonScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 10
+
+        Label:
+            text: "Carbon Credits Calculator (with GPS Tracking)"
+            font_size: 24
+
+        BoxLayout:
+            orientation: "horizontal"
+            size_hint_y: None
+            height: '40dp'
+
+            Label:
+                text: "Monthly Electricity Bill (₹):"
+                size_hint_x: 0.6
+
+            TextInput:
+                id: electricity_bill
+                hint_text: "e.g. 1500"
+                input_filter: "float"
+
+        BoxLayout:
+            orientation: "horizontal"
+            size_hint_y: None
+            height: '40dp'
+
+            Label:
+                text: "Detected Transport Mode:"
+                size_hint_x: 0.6
+
+            Spinner:
+                id: transport_spinner
+                text: "walking"
+                values: ["walking", "two-wheeler", "four-wheeler"]
+                disabled: True  # Controlled via GPS
+
+        Button:
+            text: "Calculate Carbon Credits"
+            size_hint_y: None
+            height: '48dp'
+            on_release: root.calculate_credits()
+
+        ScrollView:
+            do_scroll_x: False
+            size_hint_y: 0.4
+
+            GridLayout:
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: 5
+
+                Label:
+                    id: carbon_footprint_label
+                    text: ""
+                    text_size: self.width, None
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    halign: "left"
+                    valign: "top"
+                    font_size: 18
+
+                Label:
+                    id: carbon_credits_label
+                    text: ""
+                    text_size: self.width, None
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    halign: "left"
+                    valign: "top"
+                    font_size: 18
+
+        Button:
+            text: "Back"
+            size_hint_y: None
+            height: '48dp'
+            on_release: app.root.current = 'main'
+
 
 <JunkFoodScreen>:
     username: ""
