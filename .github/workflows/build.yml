@@ -1,0 +1,29 @@
+name: Build Android APK
+
+# This workflow is triggered on pushes to the main or master branch
+on:
+  push:
+    branches: [ "main", "master" ]
+
+jobs:
+  build:
+    # Use the latest Ubuntu runner for the build
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Checkout the repository code
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # 2. Run the Buildozer action to build the APK
+    - name: Build with Buildozer
+      uses: ArtemSBulgakov/buildozer-action@v1
+      with:
+        command: buildozer android debug # The build command
+
+    # 3. Upload the finished APK as an artifact
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: AirQualityApp.apk # The name of the downloadable file
+        path: bin/*.apk         # The path where the APK is located
